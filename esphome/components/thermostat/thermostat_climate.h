@@ -465,6 +465,8 @@ class ThermostatClimate : public climate::Climate, public Component {
   /// If set to DEFAULT_PRESET then the default preset is always used. When MEMORY prior
   /// state will attempt to be restored if possible
   thermostat::OnBootRestoreFrom on_boot_restore_from_{thermostat::OnBootRestoreFrom::MEMORY};
+private:
+  bool just_turn_on;
 };
 
 }  // namespace thermostat
