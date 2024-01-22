@@ -929,7 +929,7 @@ bool ThermostatClimate::heating_required_() {
       return false;
     } else if (this->just_turn_on) {
       return true;
-    }
+    } else {
       // if we get here, the current temperature is between target - deadband and target + overrun,
       //  so the action should not change unless it conflicts with the current mode
       return (this->action == climate::CLIMATE_ACTION_HEATING) &&
