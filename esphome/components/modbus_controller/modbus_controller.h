@@ -156,7 +156,7 @@ inline uint64_t qword_from_hex_str(const std::string &value, uint8_t pos) {
  * @param buffer_offset  offset in bytes.
  * @return value of type T extracted from buffer
  */
-template<typename T> T get_data(const std::vector<uint8_t> &data, size_t buffer_offset) {
+template<typename T> T get_data(const std::vector<uint8_t> &data, size_t buffer_offset, bool is_lsb) {
   if (sizeof(T) == sizeof(uint8_t)) {
     return T(data[buffer_offset]);
   }
