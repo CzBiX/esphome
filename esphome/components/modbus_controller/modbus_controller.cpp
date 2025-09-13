@@ -469,7 +469,7 @@ void ModbusController::loop() {
 
 void ModbusController::on_write_register_response(ModbusRegisterType register_type, uint16_t start_address,
                                                   const std::vector<uint8_t> &data) {
-  ESP_LOGV(TAG, "Command ACK 0x%X %d ", this->get_data_(<uint8_t>(data, 0), this->get_data_<int8_t>(data, 1));
+  ESP_LOGV(TAG, "Command ACK 0x%X %d ", this->get_data_<uint8_t>(data, 0), this->get_data_<int8_t>(data, 1));
 }
 
 void ModbusController::dump_sensors_() {
