@@ -32,6 +32,7 @@ from .const import (
     CONF_RESPONSE_SIZE,
     CONF_SKIP_UPDATES,
     CONF_VALUE_TYPE,
+    CONF_LSB,
 )
 
 CODEOWNERS = ["@martgras"]
@@ -184,6 +185,7 @@ CONFIG_SCHEMA = cv.All(
                     cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(ModbusOfflineTrigger),
                 }
             ),
+            cv.Optional(CONF_LSB, default=False): cv.boolean,
         }
     )
     .extend(cv.polling_component_schema("60s"))
