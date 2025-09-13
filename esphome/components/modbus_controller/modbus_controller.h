@@ -150,7 +150,6 @@ inline uint64_t qword_from_hex_str(const std::string &value, uint8_t pos) {
   return static_cast<uint64_t>(dword_from_hex_str(value, pos)) << 32 | dword_from_hex_str(value, pos + 4);
 }
 
-// Extract data from modbus response buffer
 /** Extract data from modbus response buffer
  * @param T one of supported integer data types int_8,int_16,int_32,int_64
  * @param data modbus response buffer (uint8_t)
@@ -162,16 +161,29 @@ template<typename T> T get_data(const std::vector<uint8_t> &data, size_t buffer_
     return T(data[buffer_offset]);
   }
   if (sizeof(T) == sizeof(uint16_t)) {
-    return T((uint16_t(data[buffer_offset + 0]) << 8) | (uint16_t(data[buffer_offset + 1]) << 0));
+    if (is_lsb) {
+      return T((uint16_t(data[buffer_offset + 1]) << 8) | uint16_t(data[buffer_offset + 0]));
+    } else {
+      return T((uint16_t(data[buffer_offset + 0]) << 8) | uint16_t(data[buffer_offset + 1]));
+    }
   }
-
   if (sizeof(T) == sizeof(uint32_t)) {
-    return get_data<uint16_t>(data, buffer_offset) << 16 | get_data<uint16_t>(data, (buffer_offset + 2));
+    if (is_lsb) {
+      return (T(get_data<uint16_t>(data, buffer_offset + 2, is_lsb)) << 16) |
+             T(get_data<uint16_t>(data, buffer_offset, is_lsb));
+    } else {
+      return (T(get_data<uint16_t>(data, buffer_offset, is_lsb)) << 16) |
+             T(get_data<uint16_t>(data, buffer_offset + 2, is_lsb));
+    }
   }
-
   if (sizeof(T) == sizeof(uint64_t)) {
-    return static_cast<uint64_t>(get_data<uint32_t>(data, buffer_offset)) << 32 |
-           (static_cast<uint64_t>(get_data<uint32_t>(data, buffer_offset + 4)));
+    if (is_lsb) {
+      return (uint64_t(get_data<uint32_t>(data, buffer_offset + 4, is_lsb)) << 32) |
+             uint64_t(get_data<uint32_t>(data, buffer_offset, is_lsb));
+    } else {
+      return (uint64_t(get_data<uint32_t>(data, buffer_offset, is_lsb)) << 32) |
+             uint64_t(get_data<uint32_t>(data, buffer_offset + 4, is_lsb));
+    }
   }
 }
 
@@ -516,6 +528,7 @@ class ModbusController : public PollingComponent, public modbus::ModbusDevice {
   void set_command_throttle(uint16_t command_throttle) { this->command_throttle_ = command_throttle; }
   /// called by esphome generated code to set the offline_skip_updates
   void set_offline_skip_updates(uint16_t offline_skip_updates) { this->offline_skip_updates_ = offline_skip_updates; }
+  void set_lsb(bool is_lsb) { this->is_lsb_ = is_lsb; }
   /// get the number of queued modbus commands (should be mostly empty)
   size_t get_command_queue_length() { return command_queue_.size(); }
   /// get if the module is offline, didn't respond the last command
@@ -564,6 +577,8 @@ class ModbusController : public PollingComponent, public modbus::ModbusDevice {
   bool module_offline_{false};
   /// how many updates to skip if module is offline
   uint16_t offline_skip_updates_{0};
+  /// if the bit numbering is LSB
+  bool is_lsb_{false};
   /// How many times we will retry a command if we get no response
   uint8_t max_cmd_retries_{4};
   /// Command sent callback
@@ -572,6 +587,8 @@ class ModbusController : public PollingComponent, public modbus::ModbusDevice {
   CallbackManager<void(int, int)> online_callback_{};
   /// Server offline callback
   CallbackManager<void(int, int)> offline_callback_{};
+  /// Extract data from modbus response buffer
+  template<typename T> T get_data_(const std::vector<uint8_t> &data, size_t buffer_offset); 
 };
 
 /** Convert vector<uint8_t> response payload to float.

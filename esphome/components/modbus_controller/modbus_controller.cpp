@@ -469,7 +469,7 @@ void ModbusController::loop() {
 
 void ModbusController::on_write_register_response(ModbusRegisterType register_type, uint16_t start_address,
                                                   const std::vector<uint8_t> &data) {
-  ESP_LOGV(TAG, "Command ACK 0x%X %d ", get_data<uint16_t>(data, 0), get_data<int16_t>(data, 1));
+  ESP_LOGV(TAG, "Command ACK 0x%X %d ", this->get_data_(<uint8_t>(data, 0), this->get_data_<int8_t>(data, 1));
 }
 
 void ModbusController::dump_sensors_() {
@@ -478,6 +478,10 @@ void ModbusController::dump_sensors_() {
     ESP_LOGV(TAG, "  Sensor start=0x%X count=%d size=%d offset=%d", it->start_address, it->register_count,
              it->get_register_size(), it->offset);
   }
+}
+
+inline template<typename T> T ModbusController::get_data_(const std::vector<uint8_t> &data, size_t buffer_offset) {
+  return get_data(data, buffer_offset, this->is_lsb_);
 }
 
 ModbusCommandItem ModbusCommandItem::create_read_command(
@@ -710,7 +714,7 @@ int64_t payload_to_number(const std::vector<uint8_t> &data, SensorValueType sens
   switch (sensor_value_type) {
     case SensorValueType::U_WORD:
       if (size >= 2) {
-        value = mask_and_shift_by_rightbit(get_data<uint16_t>(data, offset), bitmask);  // default is 0xFFFF ;
+        value = mask_and_shift_by_rightbit(this->get_data_<uint16_t>(data, offset), bitmask);  // default is 0xFFFF ;
       } else {
         error = true;
       }
@@ -718,7 +722,7 @@ int64_t payload_to_number(const std::vector<uint8_t> &data, SensorValueType sens
     case SensorValueType::U_DWORD:
     case SensorValueType::FP32:
       if (size >= 4) {
-        value = get_data<uint32_t>(data, offset);
+        value = this->get_data_<uint32_t>(data, offset);
         value = mask_and_shift_by_rightbit((uint32_t) value, bitmask);
       } else {
         error = true;
@@ -727,7 +731,7 @@ int64_t payload_to_number(const std::vector<uint8_t> &data, SensorValueType sens
     case SensorValueType::U_DWORD_R:
     case SensorValueType::FP32_R:
       if (size >= 4) {
-        value = get_data<uint32_t>(data, offset);
+        value = this->get_data_<uint32_t>(data, offset);
         value = static_cast<uint32_t>(value & 0xFFFF) << 16 | (value & 0xFFFF0000) >> 16;
         value = mask_and_shift_by_rightbit((uint32_t) value, bitmask);
       } else {
@@ -736,7 +740,7 @@ int64_t payload_to_number(const std::vector<uint8_t> &data, SensorValueType sens
       break;
     case SensorValueType::S_WORD:
       if (size >= 2) {
-        value = mask_and_shift_by_rightbit(get_data<int16_t>(data, offset),
+        value = mask_and_shift_by_rightbit(this->get_data_<int16_t>(data, offset),
                                            bitmask);  // default is 0xFFFF ;
       } else {
         error = true;
@@ -744,14 +748,14 @@ int64_t payload_to_number(const std::vector<uint8_t> &data, SensorValueType sens
       break;
     case SensorValueType::S_DWORD:
       if (size >= 4) {
-        value = mask_and_shift_by_rightbit(get_data<int32_t>(data, offset), bitmask);
+        value = mask_and_shift_by_rightbit(this->get_data_<int32_t>(data, offset), bitmask);
       } else {
         error = true;
       }
       break;
     case SensorValueType::S_DWORD_R: {
       if (size >= 4) {
-        value = get_data<uint32_t>(data, offset);
+        value = this->get_data_<uint32_t>(data, offset);
         // Currently the high word is at the low position
         // the sign bit is therefore at low before the switch
         uint32_t sign_bit = (value & 0x8000) << 16;
@@ -765,7 +769,7 @@ int64_t payload_to_number(const std::vector<uint8_t> &data, SensorValueType sens
     case SensorValueType::S_QWORD:
       // Ignore bitmask for QWORD
       if (size >= 8) {
-        value = get_data<uint64_t>(data, offset);
+        value = this->get_data_<uint64_t>(data, offset);
       } else {
         error = true;
       }
@@ -774,7 +778,7 @@ int64_t payload_to_number(const std::vector<uint8_t> &data, SensorValueType sens
     case SensorValueType::S_QWORD_R: {
       // Ignore bitmask for QWORD
       if (size >= 8) {
-        uint64_t tmp = get_data<uint64_t>(data, offset);
+        uint64_t tmp = this->get_data_<uint64_t>(data, offset);
         value = (tmp << 48) | (tmp >> 48) | ((tmp & 0xFFFF0000) << 16) | ((tmp >> 16) & 0xFFFF0000);
       } else {
         error = true;

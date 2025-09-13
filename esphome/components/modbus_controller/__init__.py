@@ -301,6 +301,7 @@ async def to_code(config):
     cg.add(var.set_command_throttle(config[CONF_COMMAND_THROTTLE]))
     cg.add(var.set_max_cmd_retries(config[CONF_MAX_CMD_RETRIES]))
     cg.add(var.set_offline_skip_updates(config[CONF_OFFLINE_SKIP_UPDATES]))
+    cg.add(var.set_lsb(config[CONF_LSB]))
     if CONF_SERVER_REGISTERS in config:
         for server_register in config[CONF_SERVER_REGISTERS]:
             server_register_var = cg.new_Pvariable(
