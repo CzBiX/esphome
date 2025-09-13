@@ -481,7 +481,7 @@ void ModbusController::dump_sensors_() {
 }
 
 template<typename T> T ModbusController::get_data_(const std::vector<uint8_t> &data, size_t buffer_offset) {
-  return get_data(data, buffer_offset, this->is_lsb_);
+  return get_data(data, buffer_offset, *this->is_lsb_);
 }
 
 ModbusCommandItem ModbusCommandItem::create_read_command(
