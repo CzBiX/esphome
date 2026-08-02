@@ -498,6 +498,8 @@ class ThermostatClimate final : public climate::Climate, public Component {
  private:
   /// Default custom preset to use on start up (pointer to entry in custom_preset_config_)
   const char *default_custom_preset_{nullptr};
+  /// True immediately after switching to a non-OFF mode; forces one action re-evaluation cycle.
+  bool just_turn_on_{false};
 };
 
 }  // namespace esphome::thermostat

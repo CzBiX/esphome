@@ -91,6 +91,8 @@ void ThermostatClimate::refresh() {
   this->check_humidity_change_trigger_();
   this->check_temperature_change_trigger_();
   this->publish_state();
+
+  this->just_turn_on_ = false;
 }
 
 bool ThermostatClimate::climate_action_change_delayed() {
@@ -801,6 +803,7 @@ void ThermostatClimate::switch_to_mode_(climate::ClimateMode mode, bool publish_
       mode = climate::CLIMATE_MODE_OFF;
       // trig = this->off_mode_trigger_;
   }
+  this->just_turn_on_ = mode != climate::CLIMATE_MODE_OFF;
   trig->trigger();
   this->mode = mode;
   this->prev_mode_ = mode;
@@ -1103,6 +1106,8 @@ bool ThermostatClimate::heating_required_() {
       // if the current temperature is above or equal to the target + overrun, heating should stop
 
       return false;
+    } else if (this->just_turn_on_) {
+      return true;
     } else {
       // if we get here, the current temperature is between target - deadband and target + overrun,
       //  so the action should not change unless it conflicts with the current mode
